@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="/javascripts/jquery.js"></script>
+  <script src="/javascripts/handlebars.js"></script>
+  <script type="module" src="/javascripts/main.js"></script>
+  <link rel="stylesheet" href="stylesheets/ind.css">
+</head>
+<body>
+  <h1 style="text-align: center;">Contact Manager</h1>
+  <h2 style="text-align: center;">Using Backbone.js, LocalStorage, RequireJS, Handlebar, and Bootstrap</h2>
+
+  <div id="addForm">
+    <form action="#" method="POST" id="add">
+      <button type="submit">Add Contact</button>
+      <br>
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" placeholder="Search">
+    </form>
+  </div>
+
+  <div id='noContacts' style="display: none">
+    <h3>There are no contacts starting with <span id="search"> </span></h3>
+  </div>
+
+
+
+<!-- if there are no contacts then diplay this- if not then display list -->
+<br>
+  <div id="contact-add" style="display: none">
+    <h3 style="text-align: center;">There are no contacts</h3>
+    <button class="addContact">Add Contact</button>
+  </div>
+  
+<!-- Do a Handlebar here with a list of contacts(name, phonenumber, email) -->
+  <div id="contact-handle">
+   <div id="contacts-list"></div>
+   <script id="contacts" type="text/x-handlebars-template"> 
+     {{#each this}}
+     <ul id="{{id}}">
+       <h4 class="nameClass">{{full_name}}</h4>
+       <h5>Phone Number:</h5>
+       <p>{{phone_number}}</p>
+       <h5>Email:</h5>
+       <p>{{email}}</p>
+       <button data-edit="edit">Edit</button>
+       <button data-delete="delete">Delete</button>
+     </ul>
+     {{/each}}
+   </script>
+</div>
+
+
+
+<div id="myModal" class="modal">
+  <div class="modal-content">
+      <p>Are you sure you want to delete this contact?</p>
+      <button id="confirmDelete">Yes</button>
+      <button id="cancelDelete">Cancel</button>
+  </div>
+</div>
+
+
+
+
+  <div id="submissionForm" style="display:none">
+    <h3 style="text-align: center;">Create Contact</h3>
+    <form action="#" method="POST" id="submission">
+      <div>
+        <label for="fullName">Full Name:</label>
+        <input type="text" id="full_Name" name="full_name">
+        <span class="error" id='nameError' style="display:none">Please Enter a Valid Name</span>
+      </div>
+      <div>
+        <label for="email">Email Adress:</label>
+        <input type="email" id="email" name="email">
+        <span class="error" id='emailError' style="display:none">Please Enter a Valid Email</span>
+      </div>
+      <div>
+        <label for="number">Telephone Number:</label>
+        <input type="text" id="phone_number" name="phone_number">
+        <span class="error" id='phoneError' style="display:none">Please Enter a Valid Phone Number </span>
+      </div>
+      <button type="submit">Submit</button>
+      <br>
+      <button id='cancel' type="button">Cancel</button>
+    </form>
+  </div>
+
+  <div id="updateForm" style="display:none">
+    <h3 style="text-align: center;">Update Contact</h3>
+    <form action="#" method="PUT" id="update">
+      <div>
+        <label for="fullName">Full Name:</label>
+        <input type="text" id="edit_full_Name" name="full_name">
+        <span class="error" id='edit_nameError' style="display:none">Please Enter a Valid Name</span>
+      </div>
+      <div>
+        <label for="email">Email Adress:</label>
+        <input type="email" id="edit_email" name="email">
+        <span class="error" id='edit_emailError' style="display:none">Please Enter a Valid Email</span>
+      </div>
+      <div>
+        <label for="number">Telephone Number:</label>
+        <input type="text" id="edit_phone_number" name="phone_number">
+        <span class="error" id='edit_phoneError' style="display:none">Please Enter a Valid Phone Number </span>
+      </div>
+      <button type="submit">Submit</button>
+      <br>
+      <button id='edit_cancel' type="button">Cancel</button>
+    </form>
+  </div>
+
+
+  <footer>Developed by Devsaran.com and 239 Listing Real Estate.</footer>
+</body>
+</html>
