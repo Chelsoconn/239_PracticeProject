@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "full_name": "Jack",
+    "phone_number": "1231231234",
+    "email": "esmeralda.weber@huel.biz",
+    "tags": "Professional,Family",
+    "id": 1
+  },
+  {
+    "full_name": "Jane LP",
+    "phone_number": "1231231234",
+    "email": "esmeralda.weber@huel.biz",
+    "tags": "Medical",
+    "id": 2
+  }
+]

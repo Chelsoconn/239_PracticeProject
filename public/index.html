@@ -18,8 +18,20 @@
     <form action="#" method="POST" id="add">
       <button type="submit">Add Contact</button>
       <br>
+      <p>Filter Contacts By:</p>
       <label for="name">Name</label>
       <input type="text" id="name" name="name" placeholder="Search">
+      <div>
+        <label for="searchTags">Tags:</label>
+        <select id="searchTags" name="searchTags">
+            <option value="" disabled selected>Choose one</option>
+            <option value="Personal">Personal</option>
+            <option value="Professional">Professional</option>
+            <option value="Family">Family</option>
+            <option value="Medical">Medical</option>
+            <option value="Misc.">Misc.</option>
+        </select>
+      </div>
     </form>
   </div>
 
@@ -47,6 +59,8 @@
        <p>{{phone_number}}</p>
        <h5>Email:</h5>
        <p>{{email}}</p>
+       <h5>Tags:</h5>
+       <p class="tags">{{tags}}</p>
        <button data-edit="edit">Edit</button>
        <button data-delete="delete">Delete</button>
      </ul>
@@ -85,6 +99,26 @@
         <input type="text" id="phone_number" name="phone_number">
         <span class="error" id='phoneError' style="display:none">Please Enter a Valid Phone Number </span>
       </div>
+      <div>
+        <label for="tags1">Tag:</label>
+        <select id="tags1" name="tags1">
+            <option value="" disabled selected>First Tag</option>
+            <option value="Personal">Personal</option>
+            <option value="Professional">Professional</option>
+            <option value="Family">Family</option>
+            <option value="Medical">Medical</option>
+            <option value="Misc.">Misc.</option>
+        </select>
+        <label for="tags2">Tag:</label>
+        <select id="tags2" name="tags2">
+            <option value="" disabled selected>Second Tag</option>
+            <option value="Personal">Personal</option>
+            <option value="Professional">Professional</option>
+            <option value="Family">Family</option>
+            <option value="Medical">Medical</option>
+            <option value="Misc.">Misc.</option>
+        </select>
+      </div>
       <button type="submit">Submit</button>
       <br>
       <button id='cancel' type="button">Cancel</button>
@@ -108,6 +142,26 @@
         <label for="number">Telephone Number:</label>
         <input type="text" id="edit_phone_number" name="phone_number">
         <span class="error" id='edit_phoneError' style="display:none">Please Enter a Valid Phone Number </span>
+      </div>
+      <div>
+        <label for="updateTags1">Tag:</label>
+        <select id="updateTags1" name="updateTags1">
+            <option value="" disabled selected>First Tag</option>
+            <option value="Personal">Personal</option>
+            <option value="Professional">Professional</option>
+            <option value="Family">Family</option>
+            <option value="Medical">Medical</option>
+            <option value="Misc.">Misc.</option>
+        </select>
+        <label for="updateTags2">Tag:</label>
+        <select id="updateTags2" name="updateTags2">
+            <option value="" disabled selected>Second Tag</option>
+            <option value="Personal">Personal</option>
+            <option value="Professional">Professional</option>
+            <option value="Family">Family</option>
+            <option value="Medical">Medical</option>
+            <option value="Misc.">Misc.</option>
+        </select>
       </div>
       <button type="submit">Submit</button>
       <br>

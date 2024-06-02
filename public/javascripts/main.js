@@ -83,6 +83,8 @@ $(() => {
 
 //  This adds the search functionality
 
+
+// MAKE IT SO IT CHANGES NO MATTER WHAT FILTER IS CHECKED 
   document.getElementById('name').addEventListener('keyup', function(event) {
     let val = this.value
     document.querySelectorAll('.nameClass').forEach(name => {
@@ -99,6 +101,36 @@ $(() => {
       document.getElementById('noContacts').style.display='none'
     }
   })
+
+
+  document.getElementById('searchTags').addEventListener('change', event => {
+    let val = event.target.value
+   
+    document.querySelectorAll('.tags').forEach(tag => {
+      if (tag.textContent.includes(val)) {
+        tag.closest('ul').style.display = 'block'
+      } else {
+        tag.closest('ul').style.display = 'none'
+      }
+    })
+  })
+
+
+
+  function getTags(obj, one, two) {
+    let tags = null
+    console.log(obj, one, two)
+    console.log(obj[one])
+    if (obj[one] && !obj[two]) {
+      tags = obj[one]
+    } else if (obj[two] && !obj[one]) {
+      tags = obj[two]
+    } else if (obj[one] && obj[two]) {
+      tags = obj[one] + ',' + obj[two]
+    } 
+    delete obj[one], obj[two]
+    obj.tags = tags
+  }
 
   document.querySelector('#add').addEventListener('submit', event => {
     event.preventDefault()
@@ -117,10 +149,12 @@ $(() => {
 
     let formData = new FormData(document.querySelector("#submission"))
     let obj = {}
+
     for (let entry of formData.entries()) {
-      obj[entry[0]] =entry[1]
+      obj[entry[0]] = entry[1]
     }
-    console.log(obj)
+    getTags(obj, 'tags1', 'tags2')
+
     validate(obj, 'nameError', 'emailError', 'phoneError')
 
     if (Array.from(document.querySelectorAll('.error')).every(err => err.style.display === 'none')) {
@@ -130,10 +164,11 @@ $(() => {
   
       request.addEventListener('load', () => {
         fillform()
-         hideForm()
+        hideForm()
         document.getElementById('updateForm').style.display='none'
+        console.log(request.response)
       })
-  
+     
       request.send(JSON.stringify(obj))
     }
   })
@@ -145,7 +180,9 @@ $(() => {
     for (let entry of formData.entries()) {
       obj[entry[0]] =entry[1]
     }
-  
+    
+    getTags(obj, 'updateTags1', 'updateTags2')
+
     validate(obj, 'edit_nameError', 'edit_emailError', 'edit_phoneError')
 
     if (Array.from(document.querySelectorAll('.error')).every(err => err.style.display === 'none')) {
