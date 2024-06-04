@@ -167,3 +167,37 @@ h1:hover::after {
 form .errorbox {
   border: 2px solid rgb(204, 31, 164);
 }
+
+#message-container {
+  text-align: center;
+  height: 60px; /* Adjust the height as needed */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+#message {
+  color: #1d4292;
+  font-style: italic;
+  font-weight: bold;
+  padding: 10px 10px;
+  border: 2px solid #5055a3;
+  border-radius: 4px;
+  background-color: #f0f8ff; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  text-align: center;
+  display: inline-block;
+  margin: 20px auto;
+  opacity: 0;
+  visibility: hidden;
+}
+
+#message.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+
+
