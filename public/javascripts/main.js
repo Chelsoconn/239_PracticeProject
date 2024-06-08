@@ -88,36 +88,39 @@ document.addEventListener('DOMContentLoaded', () => {
     newMessage.classList.remove('show');
   }
 
-  (function deleteContact() {
-    cancelDelete.onclick = function() {
+  function deleteContact() {
+    cancelDelete.addEventListener('click', () => {
       modal.style.display = 'none';
-    }
-  
-    confirmDelete.onclick = function() {
+    });
+
+    confirmDelete.addEventListener('click', () => {
       let request = new XMLHttpRequest();
       let id = currentButton.parentElement.id;
       request.open('DELETE', `http://localhost:3000/api/contacts/${id}`);
       nameElement.value = '';
       seachTags.value = '';
-      
+
       request.addEventListener('load', () => {
         if (request.status === 204) {
           let deletedName = currentButton.parentElement.firstElementChild.textContent;
-          showMessage;
-          newMessage.textContent = `${deletedName} was deleted`;
+          showMessage()
+          newMessage.textContent = `${deletedName} was deleted!`;
         } else {
           console.error(`Delete failed with status ${request.status}: ${request.statusText}`);
         }
-      })
+      });
 
-      requestError(request)
+      requestError(request);
       request.send();
 
       currentButton.parentElement.remove();
       modal.style.display = 'none';
       fillform();
-    }
-  })()
+    });
+  }
+
+  deleteContact();
+
 
 
   function notification(searchName, searchTag, phrase) {
@@ -194,8 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function validate(obj, nameError, emailError, phoneError) {
-    validation(obj.full_name, "^[a-zA-Z\s' -]+$", nameError);
-    validation(obj.email, "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", emailError);
+    validation(obj.full_name, "^[a-zA-Z' -]+$", nameError);
+    validation(obj.email, "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$", emailError);
     validation(obj.phone_number, "^(\\d{10}|\\d{3}-\\d{3}-\\d{4}|\\(\\d{3}\\)\\d{3}-\\d{4})$", phoneError);
     
     function validation(key, regex, id) {
@@ -230,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   fillform();
 
-  nameElement.addEventListener('keyup', function(event) {
+  nameElement.addEventListener('keyup', function() {
     deleteMessage()
     newMessage.textContent = '';
     let searchName = this.value;

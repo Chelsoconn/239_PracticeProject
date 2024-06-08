@@ -1,0 +1,14 @@
+{
+  "eslint.options": {
+    "configFile": "eslint.config.mjs"
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
+}
