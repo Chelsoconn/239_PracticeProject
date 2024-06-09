@@ -8,12 +8,187 @@ document.addEventListener('DOMContentLoaded', () => {
   let newMessage = document.getElementById('message');
   let noContacts = document.getElementById('noContacts');
   let updateForm = document.querySelector("#updateForm");
-  let seachTags = document.getElementById('searchTags');
+  let searchTags = document.getElementById('searchTags');
   let error = Array.prototype.slice.call(document.querySelectorAll('.error'));
   let searchForm = Array.prototype.slice.call(document.querySelectorAll('.addForm'));
   let submission = document.querySelector("#submission");
   let currentButton;
   let bool = true;
+
+  //EVENT LISTENER CALLBACKS
+  function handleSearchChangeListener() {
+    deleteMessage();
+    newMessage.textContent = '';
+    let searchName = document.querySelector('#name').value.trim().toLowerCase();
+    let searchTag = searchTags.value;
+
+    document.querySelectorAll('.tags').forEach(tag => {
+      if (tag.textContent.includes(searchTag)) {
+        tag.closest('ul').style.display = 'block';
+      } else {
+        tag.closest('ul').style.display = 'none';
+      }
+    });
+
+    document.querySelectorAll('.nameClass').forEach(name => {
+      let nameArr = name.textContent.toLowerCase().trim().split(/\s+/);
+      let bool = nameArr.some(el => {
+        return (el.startsWith(searchName) || nameArr.join('').startsWith(searchName.replace(/\s+/, '')));
+      });
+
+      if (!bool) {
+        name.closest('ul').style.display = 'none';
+      }
+    });
+
+    notification(searchName, searchTag, `with the Tag: ${searchTag}`);
+  }
+
+  function addListListener(event) {
+    if (event.target.hasAttribute('data-delete')) {
+      modal.style.display = 'block';
+      currentButton = event.target;
+    } else if (event.target.hasAttribute('data-edit')) {
+      addHide("updateForm");
+      let parent = event.target.parentElement;
+      let id = parent.id;
+      document.getElementById("edit_full_Name").value = parent.children[0].textContent;
+      document.getElementById("edit_phone_number").value = parent.children[2].textContent;
+      document.getElementById("edit_email").value = parent.children[4].textContent;
+      let tagsArr = parent.children[6].textContent.split(',');
+      if (tagsArr.length < 2) tagsArr.push('');
+      Array.prototype.slice.call(document.getElementById("updateTags1").children).forEach(el => setTags(el, 0, tagsArr));
+      Array.prototype.slice.call(document.getElementById("updateTags2").children).forEach(el => setTags(el, 1, tagsArr));
+      let changeEvent = new Event('change', { bubbles: true });
+      document.getElementById("updateTags1").dispatchEvent(changeEvent);
+      updateForm.setAttribute('data-id', id);
+    }
+  }
+
+  function editCancelListener() {
+    hideForm();
+    document.getElementById('clearFilters').dispatchEvent(new Event('click'));
+    document.getElementById('updateForm').style.display = 'none';
+  }
+
+  function clearFiltersListener() {
+    resetFilterValues();
+    document.getElementById("updateTags1").dispatchEvent(new Event('change'));
+    nameElement.dispatchEvent(new Event('keyup'));
+  }
+
+  function twoTagsListener() {
+    let [tag1, tag2] = [this.children[1], this.children[3]];
+    let [t1, t2, tagOne, tagTwo] = [tag1.id, tag2.id, tag1.value, tag2.value];
+    hideTags(t1, tagTwo);
+    hideTags(t2, tagOne);
+  }
+
+  function cancelListener() {
+    clearErrors();
+    fillform();
+    hideForm();
+  }
+
+  function requestFillFormListener() {
+    if (this.status === 200) {
+      contactAdd.style.display = (this.response.length === 0) ? 'block' : 'none';
+      searchForm.forEach(el => {
+        el.style.display = (this.response.length === 0) ? 'none' : 'block';
+      });
+      fillContacts(this.response);
+    } else {
+      console.error(`Loading contacts failed with status ${this.status}: ${this.statusText}`);
+    }
+  }
+
+  function updateFormListener(event) {
+    event.preventDefault();
+    let updateEl = document.querySelector("#update");
+    let formData = new FormData(updateEl);
+    let obj = {};
+
+    formatFormData(obj, formData);
+
+    if (obj.updateTags1 === obj.updateTags2) delete obj.updateTags2;
+    getTags(obj, 'updateTags1', 'updateTags2');
+    validate(obj, 'edit_nameError', 'edit_emailError', 'edit_phoneError');
+
+    if (error.every(err => err.style.display === 'none')) {
+      updateEl.reset();
+      let starter = updateForm.getAttribute('data-id');
+      let request = new XMLHttpRequest();
+      request.open('PUT', `http://localhost:3000/api/contacts/${starter}`);
+      request.setRequestHeader('Content-Type', 'application/json');
+
+      submitListener(request, obj, 'update', obj.full_name);
+    }
+  }
+
+  function addContactListener() {
+    clearErrors();
+    addHide("submissionForm");
+    submission.reset();
+  }
+
+  function requestDeleteListener() {
+    if (this.status === 204) {
+      let parent = currentButton.parentElement;
+      let deletedName = parent.firstElementChild.textContent;
+      showMessage();
+      newMessage.textContent = `${deletedName} was deleted!`;
+    } else {
+      console.error(`Delete failed with status ${this.status}: ${this.statusText}`);
+    }
+  }
+
+
+  //XML REQUESTS
+  function confirmDeleteListener() {
+    let request = new XMLHttpRequest();
+    let id = currentButton.parentElement.id;
+    request.open('DELETE', `http://localhost:3000/api/contacts/${id}`);
+    resetFilterValues();
+    request.addEventListener('load', requestDeleteListener);
+    requestError(request);
+    request.send();
+    currentButton.parentElement.remove();
+    modal.style.display = 'none';
+    fillform();
+  }
+
+  function submissionListener(event) {
+    event.preventDefault();
+    let formData = new FormData(submission);
+    let obj = {};
+
+    formatFormData(obj, formData);
+    getTags(obj, 'tags1', 'tags2');
+    validate(obj, 'nameError', 'emailError', 'phoneError');
+
+    if (error.every(err => err.style.display === 'none')) {
+      let request = new XMLHttpRequest();
+      request.open("POST", 'http://localhost:3000/api/contacts/');
+      request.setRequestHeader('Content-Type', 'application/json');
+
+      submitListener(request, obj, 'submit', obj.full_name);
+    }
+  }
+
+  function fillform() {
+    let request = new XMLHttpRequest();
+    request.open('GET', 'http://localhost:3000/api/contacts');
+    request.responseType = 'json';
+    request.addEventListener('load', requestFillFormListener);
+    requestError(request);
+    request.send();
+  }
+
+  //MISC FUNCTIONS
+  function resetFilterValues() {
+    nameElement.value = '';
+    searchTags.value = '';
+  }
 
   function hideTags(initial, compare) {
     let initChild = document.getElementById(initial).children;
@@ -23,31 +198,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function requestError(request) {
-    request.addEventListener('error', () => {
-      console.log('An error occured while deleting.');
-    });
-  }
-
-  function fillform() {
-    let request = new XMLHttpRequest();
-    request.open('GET', 'http://localhost:3000/api/contacts');
-    request.responseType = 'json';
-
-    request.addEventListener('load', () => {
-      if (request.status === 200) {
-        contactAdd.style.display = (request.response.length === 0) ? 'block' : 'none';
-        searchForm.forEach(el => {
-          el.style.display = (request.response.length === 0) ? 'none' : 'block';
-        });
-        fillContacts(request.response);
+  function formatFormData(obj, formData) {
+    for (let entry of formData.entries()) {
+      if (entry[0] === 'full_name' && entry[1]) {
+        obj[entry[0]] = entry[1].trim().split(/\s+/).map(el => el[0].toUpperCase() + el.slice(1)).join(' ');
+      } else if (entry[0] === 'phone_number' && entry[1]) {
+        obj[entry[0]] = entry[1].trim();
       } else {
-        console.error(`Loading contacts failed with status ${request.status}: ${request.statusText}`);
+        obj[entry[0]] = entry[1];
       }
-    });
-
-    requestError(request);
-    request.send();
+    }
   }
 
   function format(number) {
@@ -94,40 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
     newMessage.classList.remove('show');
   }
 
-  function deleteContact() {
-    cancelDelete.addEventListener('click', () => {
-      modal.style.display = 'none';
-    });
-
-    confirmDelete.addEventListener('click', () => {
-      let request = new XMLHttpRequest();
-      let id = currentButton.parentElement.id;
-      request.open('DELETE', `http://localhost:3000/api/contacts/${id}`);
-      nameElement.value = '';
-      seachTags.value = '';
-
-      request.addEventListener('load', () => {
-        if (request.status === 204) {
-          let parent = currentButton.parentElement;
-          let deletedName = parent.firstElementChild.textContent;
-          showMessage();
-          newMessage.textContent = `${deletedName} was deleted!`;
-        } else {
-          console.error(`Delete failed with status ${request.status}: ${request.statusText}`);
-        }
-      });
-
-      requestError(request);
-      request.send();
-
-      currentButton.parentElement.remove();
-      modal.style.display = 'none';
-      fillform();
-    });
-  }
-
-  deleteContact();
-
   function notification(searchName, searchTag, phrase) {
     let search = document.getElementById('search');
 
@@ -138,29 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
       noContacts.style.display = 'none';
     }
     if (searchTag === '' && searchName === '') noContacts.style.display = 'none';
-  }
-
-  function addList() {
-    let buttons = document.querySelector('#contact-handle');
-
-    buttons.addEventListener('click', event => {
-      if (event.target.hasAttribute('data-delete')) {
-        modal.style.display = 'block';
-        currentButton = event.target;
-      } else if (event.target.hasAttribute('data-edit')) {
-        addHide("updateForm");
-        let parent = event.target.parentElement;
-        let id = parent.id;
-        document.getElementById("edit_full_Name").value = parent.children[0].textContent;
-        document.getElementById("edit_phone_number").value = parent.children[2].textContent;
-        document.getElementById("edit_email").value = parent.children[4].textContent;
-        let tagsArr = parent.children[6].textContent.split(',');
-        if (tagsArr.length < 2) tagsArr.push('');
-        Array.prototype.slice.call(document.getElementById("updateTags1").children).forEach(el => setTags(el, 0, tagsArr));
-        Array.prototype.slice.call(document.getElementById("updateTags2").children).forEach(el => setTags(el, 1, tagsArr));
-        updateForm.setAttribute('data-id', id);
-      }
-    });
   }
 
   function getTags(obj, one, two) {
@@ -187,8 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("contact-handle").style.display = 'none';
     contactAdd.style.display = 'none';
     noContacts.style.display = 'none';
-    nameElement.value = '';
-    seachTags.value = '';
+    resetFilterValues();
   }
 
   function hideForm() {
@@ -224,6 +326,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  fillform();
+
+  //EVENT LISTENERS
+
   function submitListener(request, obj, type, name) {
     request.addEventListener('load', () => {
       if (request.status === 201) {
@@ -236,128 +342,40 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(`Request failed with status ${request.status}: ${request.statusText}`);
       }
     });
-
     requestError(request);
     request.send(JSON.stringify(obj));
   }
 
-  fillform();
+  function addList() {
+    let buttons = document.querySelector('#contact-handle');
+    buttons.addEventListener('click', addListListener);
+  }
 
-  nameElement.addEventListener('keyup', function() {
-    deleteMessage();
-    newMessage.textContent = '';
-    let searchName = this.value;
-    let searchTag = seachTags.value;
+  function requestError(request) {
+    request.addEventListener('error', () => console.log('An error occured while deleting.'));
+  }
 
-    document.querySelectorAll('.nameClass').forEach(name => {
-      if (name.textContent.toLowerCase().startsWith(searchName.toLowerCase())) {
-        name.closest('ul').style.display = 'block';
-
-        document.querySelectorAll('.tags').forEach(tag => {
-          if (!tag.textContent.includes(searchTag)) tag.closest('ul').style.display = 'none';
-        });
-
-      } else {
-        name.closest('ul').style.display = 'none';
-      }
-    });
-    notification(searchName, searchTag, `starting with ${searchName}`);
-  });
-
-  seachTags.addEventListener('change', event => {
-    deleteMessage();
-    newMessage.textContent = '';
-    let searchName = document.querySelector('#name').value;
-    let searchTag = event.target.value;
-
-    document.querySelectorAll('.tags').forEach(tag => {
-      if (tag.textContent.includes(searchTag)) {
-        tag.closest('ul').style.display = 'block';
-
-        document.querySelectorAll('.nameClass').forEach(name => {
-          if (!name.textContent.toLowerCase().startsWith(searchName.toLowerCase())) name.closest('ul').style.display = 'none';
-        });
-      } else {
-        tag.closest('ul').style.display = 'none';
-      }
-    });
-    notification(searchName, searchTag, `with the Tag: ${searchTag}`);
-  });
+  nameElement.addEventListener('keyup', handleSearchChangeListener);
+  searchTags.addEventListener('change', handleSearchChangeListener);
 
   document.querySelectorAll('.addContact').forEach(el => {
-    el.addEventListener('click', () => {
-      clearErrors();
-      addHide("submissionForm");
-      submission.reset();
-    });
+    el.addEventListener('click', addContactListener);
   });
 
-  submission.addEventListener('submit', event => {
-    event.preventDefault();
+  submission.addEventListener('submit', submissionListener);
+  updateForm.addEventListener('submit', updateFormListener);
+  document.getElementById('cancel').addEventListener('click', cancelListener);
+  document.getElementById('edit_cancel').addEventListener('click', editCancelListener);
 
-    let formData = new FormData(submission);
-    let obj = {};
-
-    for (let entry of formData.entries()) {
-      obj[entry[0]] = (entry[0] === 'full_name' && entry[1]) ? entry[1].split(' ').map(el => el[0].toUpperCase() + el.slice(1)).join(' ') : entry[1];
-    }
-    getTags(obj, 'tags1', 'tags2');
-
-    validate(obj, 'nameError', 'emailError', 'phoneError');
-
-    if (error.every(err => err.style.display === 'none')) {
-      let request = new XMLHttpRequest();
-      request.open("POST", 'http://localhost:3000/api/contacts/');
-      request.setRequestHeader('Content-Type', 'application/json');
-
-      submitListener(request, obj, 'submit', obj.full_name);
-    }
+  document.querySelectorAll('.twoTags').forEach(function(el) {
+    el.addEventListener('change', twoTagsListener);
   });
 
-  updateForm.addEventListener('submit', event => {
-    event.preventDefault();
-    let updateEl = document.querySelector("#update");
-    let formData = new FormData(updateEl);
-    let obj = {};
+  document.getElementById('clearFilters').addEventListener('click', clearFiltersListener);
 
-    for (let entry of formData.entries()) {
-      obj[entry[0]] = (entry[0] === 'full_name' && entry[1]) ? entry[1].split(' ').map(el => el[0].toUpperCase() + el.slice(1)).join(' ') : entry[1];
-    }
-    getTags(obj, 'updateTags1', 'updateTags2');
-    validate(obj, 'edit_nameError', 'edit_emailError', 'edit_phoneError');
-
-    if (error.every(err => err.style.display === 'none')) {
-      updateEl.reset();
-      let starter = updateForm.getAttribute('data-id');
-      let request = new XMLHttpRequest();
-      request.open('PUT', `http://localhost:3000/api/contacts/${starter}`);
-      request.setRequestHeader('Content-Type', 'application/json');
-
-      submitListener(request, obj, 'update', obj.full_name);
-    }
+  cancelDelete.addEventListener('click', () => {
+    modal.style.display = 'none';
   });
 
-  document.getElementById('cancel').addEventListener('click', () => {
-    clearErrors();
-    fillform();
-    hideForm();
-  });
-
-
-  document.getElementById('edit_cancel').addEventListener('click', () => {
-    hideForm();
-    document.getElementById('updateForm').style.display = 'none';
-  });
-
-  document.querySelectorAll('.twoTags').forEach(el => {
-    el.addEventListener('change', () => {
-      let [tag1, tag2] = [el.children[1],el.children[3]];
-      let [t1, t2, tagOne, tagTwo] = [tag1.id, tag2.id, tag1.value, tag2.value];
-
-      hideTags(t1, tagTwo);
-      hideTags(t2, tagOne);
-    });
-  });
-
+  confirmDelete.addEventListener('click', confirmDeleteListener);
 });
-
