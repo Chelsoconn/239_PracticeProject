@@ -1,5 +1,5 @@
 export default class Listeners {
-  init(elements, helpers) {
+  constructor(elements, helpers) {
     this.elements = elements;
     this.helpers = helpers;
     this.#bindListeners();

@@ -6,8 +6,7 @@ class App {
     document.addEventListener('DOMContentLoaded', () => {
       let bool = true;
       let currentButton;
-      const helpersInstance = new Helpers(bool, currentButton, new Elements());
-      helpersInstance.init();
+      let helpersInstance = new Helpers(bool, currentButton, new Elements());
     });
   }
 }

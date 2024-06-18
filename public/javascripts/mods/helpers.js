@@ -1,11 +1,10 @@
 import Listeners from './listeners.js';
 
 export default class Helpers {
-  init(bool, currentButton, elements) {
+  constructor(bool, currentButton, elements) {
     this.elements = elements;
     this.currentButton = currentButton;
     let list = new Listeners(this.elements, this);
-    list.init();
     this.bool = bool;
   }
 
